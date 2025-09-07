@@ -9,22 +9,19 @@ This project can serve as a **production-ready HR leave management system** or a
 
 ## 📑 Table of Contents
 
-- [Features](#features)  
-- [Architecture Overview](#architecture-overview)  
-- [Technology Stack](#technology-stack)  
-- [Project Structure](#project-structure)  
-- [Database Schema](#database-schema)  
-- [Workflow Logic](#workflow-logic)  
-- [Installation & Setup](#installation--setup)  
-- [Default Login Credentials](#default-login-credentials)  
-- [Testing the Workflow](#testing-the-workflow)  
-- [Configuration](#configuration)  
-- [API Endpoints](#api-endpoints)  
-- [Usage Examples](#usage-examples)  
-- [Development Workflow](#development-workflow)  
-- [Potential Enhancements](#potential-enhancements)  
-- [Screenshots](#screenshots)  
-- [License](#license)  
+-[✨ Features](#-features)
+- [⚙️ Technology Stack](#-technology-stack)
+- [📂 Project Structure](#-project-structure)
+- [🗄 Database Schema](#-database-schema)
+- [🔄 Workflow Logic](#-workflow-logic)
+- [🚀 Installation & Setup](#-installation--setup)
+- [🔑 Access & Default Login Credentials](#-access--default-login-credentials)
+- [🧪 Testing the Workflow](#-testing-the-workflow)
+- [⚙️ Configuration](#-configuration)
+- [📡 API Endpoints](#-api-endpoints)
+- [📝 Usage Examples](#-usage-examples)
+- [👨‍💻 Development Workflow](#-development-workflow)
+- [🚀 Potential Enhancements](#-potential-enhancements)
 
 ---
 
@@ -43,21 +40,7 @@ This project can serve as a **production-ready HR leave management system** or a
 
 ---
 
-## 🏗 Architecture Overview
 
-```mermaid
-flowchart TD
-    A[Employee Portal] -->|Submit Request| B[Workflow Engine (Flowable BPMN)]
-    B --> C{Leave Type?}
-    C -->|Vacation| D[Manager Approval]
-    C -->|Sick| D --> E[HR Verification]
-    C -->|Emergency| E
-    D -->|Escalate| F[HOD Approval]
-    F --> E
-    E --> G[Payroll Update]
-    G --> H[Notification Service]
-    H --> I[Employee Notified]
-````
 ## ⚙️ Technology Stack
 
 - **Backend:** Java 17, Spring Boot 3.1+, Spring Security, Spring Data JPA  
