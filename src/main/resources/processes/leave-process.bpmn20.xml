@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:flowable="http://flowable.org/bpmn"
+             targetNamespace="http://www.flowable.org/processdef"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL https://www.omg.org/spec/BPMN/2.0/20100501/BPMN20.xsd">
+
+    <process id="leaveProcess" name="Leave Approval Process" isExecutable="true">
+
+        <!-- Start Event -->
+        <startEvent id="startEvent" name="Leave Request Submitted" flowable:initiator="employeeId">
+            <extensionElements>
+                <flowable:formProperty id="leaveType" name="Leave Type" type="enum" required="true">
+                    <flowable:value id="VACATION" name="Vacation"/>
+                    <flowable:value id="SICK" name="Sick"/>
+                    <flowable:value id="EMERGENCY" name="Emergency"/>
+                </flowable:formProperty>
+                <flowable:formProperty id="startDate" name="Start Date" type="date" required="true"/>
+                <flowable:formProperty id="endDate" name="End Date" type="date" required="true"/>
+                <flowable:formProperty id="reason" name="Reason" type="string" required="true"/>
+            </extensionElements>
+        </startEvent>
+
+        <!-- Initial Sequence Flow -->
+        <sequenceFlow id="flow1" sourceRef="startEvent" targetRef="checkEmergencyLeave"/>
+
+        <!-- Check if it's emergency leave -->
+        <exclusiveGateway id="checkEmergencyLeave" name="Emergency Leave?" default="toNormalPath"/>
+        <sequenceFlow id="toEmergencyPath" sourceRef="checkEmergencyLeave" targetRef="hrApprovalTask">
+            <conditionExpression xsi:type="tFormalExpression">${leaveType == 'EMERGENCY'}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="toNormalPath" sourceRef="checkEmergencyLeave" targetRef="managerApprovalTask"/>
+
+        <!-- Manager Approval Task -->
+        <userTask id="managerApprovalTask" name="Manager Approval" flowable:assignee="${managerId}" flowable:candidateGroups="MANAGER">
+            <extensionElements>
+                <flowable:formProperty id="managerDecision" name="Decision" type="enum" required="true">
+                    <flowable:value id="approve" name="Approve"/>
+                    <flowable:value id="reject" name="Reject"/>
+                    <flowable:value id="escalate" name="Escalate to HoD"/>
+                </flowable:formProperty>
+                <flowable:formProperty id="managerComments" name="Comments" type="string"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="flow2" sourceRef="managerApprovalTask" targetRef="checkManagerDecision"/>
+
+        <!-- Check Manager Decision -->
+        <exclusiveGateway id="checkManagerDecision" name="Manager Decision"/>
+        <sequenceFlow id="toRejectFromManager" sourceRef="checkManagerDecision" targetRef="rejectLeaveTask">
+            <conditionExpression xsi:type="tFormalExpression">${managerDecision == 'reject'}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="toEscalateFromManager" sourceRef="checkManagerDecision" targetRef="hodApprovalTask">
+            <conditionExpression xsi:type="tFormalExpression">${managerDecision == 'escalate'}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="toApproveFromManager" sourceRef="checkManagerDecision" targetRef="checkSickLeave">
+            <conditionExpression xsi:type="tFormalExpression">${managerDecision == 'approve'}</conditionExpression>
+        </sequenceFlow>
+
+        <!-- HoD Approval Task -->
+        <userTask id="hodApprovalTask" name="Head of Department Approval" flowable:assignee="${hodId}" flowable:candidateGroups="HOD">
+            <extensionElements>
+                <flowable:formProperty id="hodDecision" name="Decision" type="enum" required="true">
+                    <flowable:value id="approve" name="Approve"/>
+                    <flowable:value id="reject" name="Reject"/>
+                </flowable:formProperty>
+                <flowable:formProperty id="hodComments" name="Comments" type="string"/>
+            </extensionElements>
+        </userTask>
+
+        <!-- Timer Boundary Event for HoD Task -->
+        <boundaryEvent id="reminderTimer" attachedToRef="hodApprovalTask">
+            <timerEventDefinition>
+                <timeDuration>PT24H</timeDuration>
+            </timerEventDefinition>
+        </boundaryEvent>
+        <sequenceFlow id="reminderFlow" sourceRef="reminderTimer" targetRef="sendReminderTask"/>
+        <serviceTask id="sendReminderTask" name="Send Reminder to HoD" flowable:class="com.example.leavemanagement.service.SendReminderTask"/>
+        <sequenceFlow id="flowAfterReminder" sourceRef="sendReminderTask" targetRef="hodApprovalTask"/>
+        <sequenceFlow id="flow3" sourceRef="hodApprovalTask" targetRef="checkHodDecision"/>
+
+        <!-- Check HoD Decision -->
+        <exclusiveGateway id="checkHodDecision" name="HoD Decision"/>
+        <sequenceFlow id="toRejectFromHod" sourceRef="checkHodDecision" targetRef="rejectLeaveTask">
+            <conditionExpression xsi:type="tFormalExpression">${hodDecision == 'reject'}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="toApproveFromHod" sourceRef="checkHodDecision" targetRef="checkSickLeave">
+            <conditionExpression xsi:type="tFormalExpression">${hodDecision == 'approve'}</conditionExpression>
+        </sequenceFlow>
+
+        <!-- Check if it's sick leave -->
+        <exclusiveGateway id="checkSickLeave" name="Sick Leave?" default="toVacationPath"/>
+        <sequenceFlow id="toSickPath" sourceRef="checkSickLeave" targetRef="hrApprovalTask">
+            <conditionExpression xsi:type="tFormalExpression">${leaveType == 'SICK'}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="toVacationPath" sourceRef="checkSickLeave" targetRef="updatePayrollTask"/>
+
+        <!-- HR Approval Task -->
+        <userTask id="hrApprovalTask" name="HR Verification" flowable:candidateGroups="HR">
+            <extensionElements>
+                <flowable:formProperty id="hrDecision" name="Decision" type="enum" required="true">
+                    <flowable:value id="approve" name="Approve"/>
+                    <flowable:value id="reject" name="Reject"/>
+                </flowable:formProperty>
+                <flowable:formProperty id="hrComments" name="Comments" type="string"/>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="flow4" sourceRef="hrApprovalTask" targetRef="checkHrDecision"/>
+
+        <!-- Check HR Decision -->
+        <exclusiveGateway id="checkHrDecision" name="HR Decision"/>
+        <sequenceFlow id="toRejectFromHr" sourceRef="checkHrDecision" targetRef="rejectLeaveTask">
+            <conditionExpression xsi:type="tFormalExpression">${hrDecision == 'reject'}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="toApproveFromHr" sourceRef="checkHrDecision" targetRef="updatePayrollTask">
+            <conditionExpression xsi:type="tFormalExpression">${hrDecision == 'approve'}</conditionExpression>
+        </sequenceFlow>
+
+        <!-- Update Payroll Service Task -->
+        <serviceTask id="updatePayrollTask" name="Update Payroll System" flowable:class="com.example.leavemanagement.service.UpdatePayrollTask"/>
+        <boundaryEvent id="payrollError" attachedToRef="updatePayrollTask">
+            <errorEventDefinition errorRef="payrollSystemError"/>
+        </boundaryEvent>
+        <sequenceFlow id="errorFlow" sourceRef="payrollError" targetRef="retryDelayEvent"/>
+        <intermediateCatchEvent id="retryDelayEvent" name="Wait 2 Hours">
+            <timerEventDefinition>
+                <timeDuration>PT2H</timeDuration>
+            </timerEventDefinition>
+        </intermediateCatchEvent>
+        <sequenceFlow id="retryFlow" sourceRef="retryDelayEvent" targetRef="retryPayrollTask"/>
+        <serviceTask id="retryPayrollTask" name="Retry Payroll Update" flowable:class="com.example.leavemanagement.service.RetryPayrollTask"/>
+        <sequenceFlow id="retryToApprove" sourceRef="retryPayrollTask" targetRef="approveLeaveTask"/>
+        <sequenceFlow id="flow5" sourceRef="updatePayrollTask" targetRef="approveLeaveTask"/>
+
+        <!-- Approve Leave Task -->
+        <serviceTask id="approveLeaveTask" name="Approve Leave" flowable:class="com.example.leavemanagement.service.ApproveLeaveTask"/>
+        <sequenceFlow id="flow6" sourceRef="approveLeaveTask" targetRef="sendApprovalNotificationTask"/>
+
+        <!-- Reject Leave Task -->
+        <serviceTask id="rejectLeaveTask" name="Reject Leave" flowable:class="com.example.leavemanagement.service.RejectLeaveTask"/>
+        <sequenceFlow id="flow7" sourceRef="rejectLeaveTask" targetRef="sendRejectionNotificationTask"/>
+
+        <!-- Notification Tasks -->
+        <serviceTask id="sendApprovalNotificationTask" name="Send Approval Notification" flowable:class="com.example.leavemanagement.service.SendApprovalNotificationTask"/>
+        <serviceTask id="sendRejectionNotificationTask" name="Send Rejection Notification" flowable:class="com.example.leavemanagement.service.SendRejectionNotificationTask"/>
+
+        <!-- End Events -->
+        <endEvent id="endEventApproved" name="Leave Approved"/>
+        <endEvent id="endEventRejected" name="Leave Rejected"/>
+        <sequenceFlow id="flow8" sourceRef="sendApprovalNotificationTask" targetRef="endEventApproved"/>
+        <sequenceFlow id="flow9" sourceRef="sendRejectionNotificationTask" targetRef="endEventRejected"/>
+
+    </process>
+
+    <!-- Error Definition -->
+    <error id="payrollSystemError" errorCode="PAYROLL_UNAVAILABLE" name="Payroll system unavailable"/>
+
+    <!-- BPMN Diagram Information -->
+    <bpmndi:BPMNDiagram id="BPMNDiagram_leaveProcess">
+        <bpmndi:BPMNPlane id="BPMNPlane_leaveProcess" bpmnElement="leaveProcess"/>
+    </bpmndi:BPMNDiagram>
+
+</definitions>
