@@ -1,33 +1,149 @@
-HELP.md
+# --- MAVEN ---
+# Target directory (where compiled files go)
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+**/target/
 
-### STS ###
-.apt_generated
+# Maven wrapper (you should keep the wrapper files though!)
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# --- JAVA ---
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# --- SPRING BOOT ---
+# Spring Boot DevTools
+/.spring-boot-devtools.*
+
+# Application properties (optional - comment out if you want to keep your local config)
+# src/main/resources/application.properties
+
+# --- DATABASES ---
+# H2 Database (file-based)
+*.mv.db
+*.trace.db
+data/
+
+# H2 (TCP server)
+*.lock.db
+
+# Other databases
+*.db
+
+# --- IDEs ---
+## Eclipse ##
 .classpath
-.factorypath
 .project
-.settings
-.springBeans
-.sts4-cache
+.settings/
+bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
+## IntelliJ IDEA ##
+.idea/
 *.iml
+*.iws
 *.ipr
+out/
 
-### NetBeans ###
+## VS Code ##
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+## NetBeans ##
 /nbproject/private/
+/build/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+## STS ##
+.apt_generated
+.factorypath
+.springBeans
+.sts4-cache
+
+# --- OPERATING SYSTEM ---
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+
+# --- OTHER ---
+# Gradle (though you're using Maven)
+.gradle/
+build/
+
+# Maven
+**/pom.xml.versionsBackup
+
+# Logs
+logs/
+*.log.*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Env files (sensitive data!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Backup files
+*.bak
+*.backup
+
+# --- EXCEPTIONS ---
+# Keep the Maven Wrapper
+!.mvn/wrapper/maven-wrapper.jar
+!mvnw
+!mvnw.cmd
+
+# Keep essential configuration (if you want)
+#!src/main/resources/application.properties
+#!src/main/resources/application.yml
