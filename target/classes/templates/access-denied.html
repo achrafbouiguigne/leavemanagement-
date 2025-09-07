@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Accès Refusé - Leave Management System</title>
+    <link href="/webjars/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="text-danger">🚫 Accès Refusé</h1>
+                    <p class="lead">Vous n'avez pas les permissions nécessaires pour accéder à cette page.</p>
+                    <p class="text-muted">Contactez votre administrateur si vous pensez qu'il s'agit d'une erreur.</p>
+                    <a th:href="@{/dashboard}" class="btn btn-primary">Retour au Dashboard</a>
+                    <a th:href="@{/logout}" class="btn btn-outline-secondary">Se déconnecter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

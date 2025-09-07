@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>HoD Dashboard - Leave Management System</title>
+    <th:block th:replace="fragments/layout :: head"></th:block>
+</head>
+<body>
+<!-- Correct way to pass a fragment into your layout -->
+<th:block th:replace="fragments/layout :: body(content = ~{::content})">
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Head of Department Dashboard</h1>
+            <div class="text-end">
+                <small class="text-muted">
+                    Département: <span th:text="${user.department ?: 'Général'}">Général</span>
+                </small>
+            </div>
+        </div>
+
+        <div class="alert alert-warning">
+            <i class="bi bi-clock-history"></i> Les demandes escaladées expirent après 24h sans réponse
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card text-center bg-warning text-dark">
+                    <div class="card-body">
+                        <h5 class="card-title">Demandes Escaladées</h5>
+                        <h2 th:text="${#lists.size(escalatedRequests)}">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-center bg-info text-white">
+                    <div class="card-body">
+                        <h5 class="card-title">Tâches En Attente</h5>
+                        <h2 th:text="${#lists.size(tasks)}">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Demandes Escaladées</h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(escalatedRequests)}" class="alert alert-info">
+                    Aucune demande escaladée en attente.
+                </div>
+                <div th:unless="${#lists.isEmpty(escalatedRequests)}" class="row">
+                    <div th:each="request : ${escalatedRequests}" class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-warning">
+                                <strong>Escaladé par:
+                                    <span th:text="${request.employee.manager.fullName}">Manager</span>
+                                </strong>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-title" th:text="${request.employee.fullName}">John Doe</h6>
+                                <p class="card-text">
+                                    <strong>Type:</strong>
+                                    <span th:switch="${request.type}" class="badge">
+                                        <span th:case="'VACATION'" class="badge bg-primary">Vacances</span>
+                                        <span th:case="'SICK'" class="badge bg-warning">Maladie</span>
+                                        <span th:case="'EMERGENCY'" class="badge bg-danger">Urgence</span>
+                                    </span>
+                                    <br>
+                                    <strong>Dates:</strong>
+                                    <span th:text="${#temporals.format(request.startDate, 'dd/MM/yyyy')}">01/01</span> -
+                                    <span th:text="${#temporals.format(request.endDate, 'dd/MM/yyyy')}">05/01</span>
+                                    <br>
+                                    <strong>Durée:</strong> <span th:text="${request.duration}">5</span> jours
+                                    <br>
+                                    <strong>Raison:</strong> <span th:text="${request.reason}">Raison</span>
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <form th:action="@{/hod/approve/{id}(id=${request.id})}" method="post" class="flex-fill">
+                                        <button type="submit" class="btn btn-success w-100">Approuver</button>
+                                    </form>
+                                    <form th:action="@{/hod/reject/{id}(id=${request.id})}" method="post" class="flex-fill">
+                                        <button type="submit" class="btn btn-danger w-100">Rejeter</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="card-footer text-muted">
+                                <small>Escaladé le:
+                                    <span th:text="${#temporals.format(request.updatedAt, 'dd/MM/yyyy HH:mm')}">
+                                        01/01 10:30
+                                    </span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Tâches Workflow HoD</h5>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(tasks)}" class="alert alert-info">
+                    Aucune tâche en attente.
+                </div>
+                <td th:text="${#strings.defaultString(task.description, 'N/A')}">John Doe</td>                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Tâche</th>
+                            <th>Créée le</th>
+                            <th>Employé</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="task : ${tasks}">
+                            <td th:text="${task.name}">Approbation HoD</td>
+                            <td th:text="${#temporals.format(task.createTime, 'dd/MM/yyyy HH:mm')}">01/01/2023 10:30</td>
+                            <td th:text="${task.description ?: 'N/A'}">John Doe</td>
+                            <td>
+                                <a th:href="@{/hod/task/{id}(id=${task.id})}" class="btn btn-primary btn-sm">Traiter</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

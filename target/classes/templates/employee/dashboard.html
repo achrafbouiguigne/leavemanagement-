@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Dashboard - Leave Management System</title>
+    <th:block th:replace="fragments/layout :: head"></th:block>
+</head>
+<body>
+<th:block th:replace="fragments/layout :: body(~{::content})">
+    <div th:fragment="content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Employee Dashboard</h1>
+            <a th:href="@{/employee/request}" class="btn btn-primary">Request Leave</a>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Leave Balance</h5>
+                        <h2 class="card-text" th:text="${user.leaveBalance}">20</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Quick Actions</h5>
+                        <a th:href="@{/employee/request}" class="btn btn-outline-primary me-2">Request Leave</a>
+                        <a th:href="@{/employee/calendar}" class="btn btn-outline-secondary">View Calendar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">My Leave Requests</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Duration</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Submitted On</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="request : ${leaveRequests}">
+                            <td th:text="${request.type}">Vacation</td>
+                            <td th:text="${#temporals.format(request.startDate, 'dd MMM yyyy')}">01 Jan 2023</td>
+                            <td th:text="${#temporals.format(request.endDate, 'dd MMM yyyy')}">05 Jan 2023</td>
+                            <td th:text="${request.duration} + ' days'">5 days</td>
+                            <td th:text="${request.reason}">Family vacation</td>
+                            <td>
+                                        <span th:switch="${request.status}" class="badge">
+                                            <span th:case="PENDING" class="badge bg-warning">Pending</span>
+                                            <span th:case="APPROVED" class="badge bg-success">Approved</span>
+                                            <span th:case="REJECTED" class="badge bg-danger">Rejected</span>
+                                            <span th:case="ESCALATED" class="badge bg-info">Escalated</span>
+                                        </span>
+                            </td>
+                            <td th:text="${#temporals.format(request.createdAt, 'dd MMM yyyy')}">01 Jan 2023</td>
+                        </tr>
+                        <tr th:if="${leaveRequests.empty}">
+                            <td colspan="7" class="text-center">No leave requests found</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>
